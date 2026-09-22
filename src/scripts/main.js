@@ -14,15 +14,15 @@ const messageLose = document.querySelector('.message-lose');
 const updateUI = () => {
   const board = game.getState();
   const score = game.getScore();
-  const gamestatus = game.getStatus();
+  const gameStatus = game.getStatus();
 
   scoreElement.textContent = score;
 
   let cellIndex = 0;
 
-  for (let r = 0; r < 4; r++) {
-    for (let c = 0; c < 4; c++) {
-      const value = board[r][c];
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 4; col++) {
+      const value = board[row][col];
       const cell = cells[cellIndex];
 
       cell.className = 'field-cell';
@@ -32,15 +32,16 @@ const updateUI = () => {
         cell.classList.add(`field-cell--${value}`);
         cell.textContent = value;
       }
-      cellIndex += 1;
+
+      cellIndex++;
     }
   }
 
-  if (gamestatus === 'win') {
+  if (gameStatus === 'win') {
     messageWin.classList.remove('hidden');
     messageStart.classList.add('hidden');
     messageLose.classList.add('hidden');
-  } else if (gamestatus === 'lose') {
+  } else if (gameStatus === 'lose') {
     messageLose.classList.remove('hidden');
     messageStart.classList.add('hidden');
     messageWin.classList.add('hidden');
@@ -68,14 +69,22 @@ document.addEventListener('keydown', (e) => {
 
   let isMoved = false;
 
-  if (e.key === 'ArrowLeft') {
-    isMoved = game.moveLeft();
-  } else if (e.key === 'ArrowRight') {
-    isMoved = game.moveRight();
-  } else if (e.key === 'ArrowUp') {
-    isMoved = game.moveUp();
-  } else if (e.key === 'ArrowDown') {
-    isMoved = game.moveDown();
+  switch (e.key) {
+    case 'ArrowLeft':
+      isMoved = game.moveLeft();
+      break;
+
+    case 'ArrowRight':
+      isMoved = game.moveRight();
+      break;
+
+    case 'ArrowUp':
+      isMoved = game.moveUp();
+      break;
+
+    case 'ArrowDown':
+      isMoved = game.moveDown();
+      break;
   }
 
   if (isMoved) {

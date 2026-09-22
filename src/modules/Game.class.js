@@ -9,6 +9,7 @@ class Game {
       this.initialState = null;
       this.board = this._getEmptyBoard();
     }
+
     this.score = 0;
     this.status = 'idle';
   }
@@ -32,21 +33,23 @@ class Game {
     for (let r = 0; r < 4; r++) {
       for (let c = 0; c < 4; c++) {
         if (this.board[r][c] === 0) {
-          emptyCells.push({ r, c });
+          emptyCells.push({ row: r, col: c });
         }
       }
     }
 
-    if (emptyCells.length > 0) {
-      const randomIndex = Math.floor(Math.random() * emptyCells.length);
-      const { r, c } = emptyCells[randomIndex];
-
-      this.board[r][c] = Math.random() < 0.1 ? 4 : 2;
+    if (emptyCells.length === 0) {
+      return;
     }
+
+    const randomIndex = Math.floor(Math.random() * emptyCells.length);
+    const { row, col } = emptyCells[randomIndex];
+
+    this.board[row][col] = Math.random() < 0.1 ? 4 : 2;
   }
 
   _compress(row) {
-    const newRow = row.filter((val) => val !== 0);
+    const newRow = row.filter((value) => value !== 0);
 
     while (newRow.length < 4) {
       newRow.push(0);
@@ -80,9 +83,9 @@ class Game {
   _rotateLeft(board) {
     const newBoard = this._getEmptyBoard();
 
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        newBoard[3 - c][r] = board[r][c];
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        newBoard[3 - col][row] = board[row][col];
       }
     }
 
@@ -92,9 +95,9 @@ class Game {
   _rotateRight(board) {
     const newBoard = this._getEmptyBoard();
 
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        newBoard[c][3 - r] = board[r][c];
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        newBoard[col][3 - row] = board[row][col];
       }
     }
 
@@ -102,9 +105,9 @@ class Game {
   }
 
   _checkMove(oldBoard, newBoard) {
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        if (oldBoard[r][c] !== newBoard[r][c]) {
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        if (oldBoard[row][col] !== newBoard[row][col]) {
           return true;
         }
       }
@@ -118,21 +121,21 @@ class Game {
       return;
     }
 
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        if (this.board[r][c] === 0) {
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        if (this.board[row][col] === 0) {
           return;
         }
       }
     }
 
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        if (c < 3 && this.board[r][c] === this.board[r][c + 1]) {
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        if (col < 3 && this.board[row][col] === this.board[row][col + 1]) {
           return;
         }
 
-        if (r < 3 && this.board[r][c] === this.board[r + 1][c]) {
+        if (row < 3 && this.board[row][col] === this.board[row + 1][col]) {
           return;
         }
       }
@@ -146,17 +149,20 @@ class Game {
       return false;
     }
 
-    const newBoard = transform(this.board);
+    const newBoard = transform(this._copyBoard(this.board));
 
-    if (this._checkMove(this.board, newBoard)) {
-      this.board = newBoard;
-      this._addRandomTile();
-      this._updateStatus();
-
-      return true;
+    if (!this._checkMove(this.board, newBoard)) {
+      return false;
     }
 
-    return false;
+    this.board = newBoard;
+
+    if (this.status !== 'win') {
+      this._addRandomTile();
+      this._updateStatus();
+    }
+
+    return true;
   }
 
   moveLeft() {
@@ -169,9 +175,8 @@ class Game {
     return this._move((board) => {
       return board.map((row) => {
         const reversedRow = [...row].reverse();
-        const movedRow = this._moveRow(reversedRow);
 
-        return movedRow.reverse();
+        return this._moveRow(reversedRow).reverse();
       });
     });
   }
@@ -207,13 +212,15 @@ class Game {
   }
 
   start() {
-    if (this.status === 'idle') {
-      this.status = 'playing';
+    if (this.status !== 'idle') {
+      return;
+    }
 
-      if (!this.initialState) {
-        this._addRandomTile();
-        this._addRandomTile();
-      }
+    this.status = 'playing';
+
+    if (!this.initialState) {
+      this._addRandomTile();
+      this._addRandomTile();
     }
   }
 
@@ -223,8 +230,10 @@ class Game {
     } else {
       this.board = this._getEmptyBoard();
     }
+
     this.score = 0;
     this.status = 'idle';
+
     this.start();
   }
 }
